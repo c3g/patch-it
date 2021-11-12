@@ -70,6 +70,7 @@ safe_mode (){
 
 
 do_patch(){
+  NEW_RPATH=
   file_path=${1}
   echo "*************************************************************************"
   echo rpath ${file_path}
