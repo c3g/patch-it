@@ -53,7 +53,7 @@ if [[ ${DISTRO} == [Uu]buntu ]] ; then
   export LIBDIR=$C3G_SYSTEM_LIBRARY/$LIB/x86_64-linux-gnu:$C3G_SYSTEM_LIBRARY/usr/$LIB/x86_64-linux-gnu:$C3G_SYSTEM_LIBRARY/$LIB:$C3G_SYSTEM_LIBRARY/usr/$LIB
 elif [[ ${DISTRO} == [Cc]entos7 ]] || [[ ${DISTRO} == [Cc]7 ]] ; then
 
-   export EXCLUDE_PATH = "/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/c3g"
+   export EXCLUDE_PATH="/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/c3g"
    export LIBDIR=/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib64:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib64:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib
 
    export INTERPRETER=/cvmfs/soft.mugqic/yum/centos7/1.0/lib64/ld-linux-x86-64.so.2
@@ -70,31 +70,30 @@ safe_mode (){
 
 
 do_patch(){
-  file = ${1}
+  file_path=${1}
   echo "*************************************************************************"
-  echo rpath
-  echo $PWD
-  readelf -d ${file}
-  if $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --print-rpath ${file}; then
-    CURRENT_RPATH=$($MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --print-rpath ${file}):
-
-    for cp in ${CURRENT_RPATH//:/$'\n'}; do
-      if [[ $LIBDIR  =~ .*${cp}.*   ]]; then
-        echo eject $cp already in LIBDIR
+  echo rpath ${file_path}
+  readelf -d ${file_path}
+  if $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --print-rpath ${file_path}; then
+    CURRENT_RPATH=$($MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --print-rpath ${file_path}):
+    echo Old rpath $CURRENT_RPATH
+    for current in ${CURRENT_RPATH//:/$'\n'}; do
+      if [[ $LIBDIR  =~ .*${current}.*   ]]; then
+        echo ejecting $current already in LIBDIR
         continue
-      elif [[  ${EXCLUDE_PATH} =~ .*${cp}.* ]]; then
-        echo eject $cp, in EXCLUDE_PATH
+      elif [[  ${EXCLUDE_PATH} =~ .*${current}.* ]]; then
+        echo ejecting $current, in EXCLUDE_PATH
         continue
-      elif [[ $cp =~ .*soft.mugqic.*  ]]; then
-        echo eject $cp, is rpath but not in LIBDIR
+      elif [[ $current =~ .*soft.mugqic.*  ]]; then
+        echo ejecting $current, is rpath but not in LIBDIR
         read
         continue
-      elif [[ ! $cp =~ .*ORIGIN.*  ]]; then
-        echo ejecting $cp from rpath
+      elif [[ ! $current =~ .*ORIGIN.*  ]]; then
+        echo ejecting $current from rpath
         read
         continue
       fi
-      NEW_RPATH=$cp:$NEW_RPATH
+      NEW_RPATH=$current:$NEW_RPATH
 
     done
 
@@ -103,18 +102,18 @@ do_patch(){
   fi
 
   RPATH=${NEW_RPATH#:}$LIBDIR
-  echo full rpath ${RPATH}
+  echo New rpath ${RPATH}
 
-if readelf -l ${file} | grep go.build > /dev/null; then
-    echo "NOOOOO" ${file}
+if readelf -l ${file_path} | grep go.build > /dev/null; then
+    echo "NOOOOO" ${file_path}
 elif [[ ${i##*.} == "so" ]] || [[ ${i##*/} =~ "so"*(\.[0-9]+[a-z]*)*$ ]]; then
-    echo OUI ${file}
-safe_mode $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --force-rpath --set-rpath ${RPATH} ${file}
+    echo OUI ${file_path}
+safe_mode $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --force-rpath --set-rpath ${RPATH} ${file_path}
 else
-    echo DOUBLE OUI ${file}
-safe_mode  $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --set-interpreter $INTERPRETER --force-rpath --set-rpath $RPATH ${file}
+    echo DOUBLE OUI ${file_path}
+safe_mode  $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --set-interpreter $INTERPRETER --force-rpath --set-rpath $RPATH ${file_path}
 fi
-ldd ${file}
+ldd ${file_path}
 
 
 }
@@ -122,8 +121,8 @@ ldd ${file}
 
 patch_from_file() {
 
-while read file; do
- do_patch file
+while read file_path; do
+ do_patch ${file_path}
 done < $FROM_FILE
 
 }
@@ -131,13 +130,15 @@ done < $FROM_FILE
 
 
 patch_dir () {
+  TO_PATCH=$1
+  echo $TO_PATCH
   for i in `find ${TO_PATCH} -type f -executable -exec file {} \; | grep -v "statically linked" | grep ELF | cut -d":" -f1` ; do
-  do_patch
+    do_patch $i
   done
 }
 
 if [[ -n ${FROM_FILE} ]] ;then
   patch_from_file
 else
-  patch_dir
+  patch_dir $TO_PATCH
 fi
