@@ -5,6 +5,7 @@ usage (){
 echo
 echo "usage: $0 -d <distro> [path]"
 echo "options"
+echo "  -s      safe mode, print but does not patch"
 echo "  -d      ubuntu[1604] or Centos7"
 echo "  -f      List of lib to patch if not given the list will be crated on"
 echo "            on the fly"
@@ -14,8 +15,11 @@ echo "            on the fly"
 
 export MUGQIC_INSTALL_HOME=/cvmfs/soft.mugqic/CentOS6
 
-while getopts ":d:f:" opt; do
+while getopts ":d:f:s" opt; do
   case $opt in
+    s)
+      export SAFE_MODE=true
+      ;;
     d)
       export DISTRO=${OPTARG}
       ;;
@@ -54,6 +58,13 @@ elif [[ ${DISTRO} == [Cc]enos7 ]] || [[ ${DISTRO} == [Cc]7 ]] ; then
    export INTERPRETER=/cvmfs/soft.mugqic/yum/centos7/1.0/lib64/ld-linux-x86-64.so.2
 fi
 
+safe_mode (){
+  if [[ -n ${SAFE_MODE} ]]; then
+    echo $@
+  else
+    $@
+  fi
+}
 
 
 do_patch(){
@@ -89,10 +100,10 @@ if readelf -l ${file} | grep go.build > /dev/null; then
     echo "NOOOOO" ${file}
 elif [ ${i##*.} == "so" ] || [[ ${i##*/} =~ "so"*(\.[0-9]+[a-z]*)*$ ]]; then
     echo OUI ${file}
-    $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --force-rpath --set-rpath ${RPATH} ${file}
+safe_mode $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --force-rpath --set-rpath ${RPATH} ${file}
 else
     echo DOUBLE OUI ${file}
-    $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --set-interpreter $INTERPRETER --force-rpath --set-rpath $RPATH ${file}
+safe_mode  $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --set-interpreter $INTERPRETER --force-rpath --set-rpath $RPATH ${file}
 fi
 ldd ${file}
 
