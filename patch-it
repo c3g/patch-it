@@ -57,11 +57,12 @@ fi
 
 
 do_patch(){
+  file = ${1}
   echo "*************************************************************************"
   echo rpath
-  readelf -d $i
-  if $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --print-rpath $i; then
-    CURRENT_RPATH=$($MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --print-rpath $i):
+  readelf -d ${file}
+  if $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --print-rpath ${file}; then
+    CURRENT_RPATH=$($MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --print-rpath ${file}):
 
     for cp in ${CURRENT_RPATH//:/$'\n'}; do
       if [[ $LIBDIR  =~ .*${cp}.*   ]]; then
@@ -84,16 +85,16 @@ do_patch(){
 
   RPATH=${NEW_RPATH#:}$LIBDIR
 
-if readelf -l $i | grep go.build > /dev/null; then
-    echo "NOOOOO" $i
+if readelf -l ${file} | grep go.build > /dev/null; then
+    echo "NOOOOO" ${file}
 elif [ ${i##*.} == "so" ] || [[ ${i##*/} =~ "so"*(\.[0-9]+[a-z]*)*$ ]]; then
-    echo OUI $i
-    $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --force-rpath --set-rpath ${RPATH} $i
+    echo OUI ${file}
+    $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --force-rpath --set-rpath ${RPATH} ${file}
 else
-    echo DOUBLE OUI $i
-    $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --set-interpreter $INTERPRETER --force-rpath --set-rpath $RPATH $i
+    echo DOUBLE OUI ${file}
+    $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --set-interpreter $INTERPRETER --force-rpath --set-rpath $RPATH ${file}
 fi
-ldd $i
+ldd ${file}
 
 
 }
@@ -102,7 +103,7 @@ ldd $i
 patch_from_file() {
 
 while read file; do
- do_patch
+ do_patch file
 done < $FROM_FILE
 
 }
