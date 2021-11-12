@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+
+usage (){
+
+echo
+echo "usage: $0 -d <distro> [path]"
+echo "options"
+echo "  -d      ubuntu[1604] or Centos7"
+echo "  -f      List of lib to patch if not given the list will be crated on"
+echo "            on the fly"
+
+}
+
+
+export MUGQIC_INSTALL_HOME=/cvmfs/soft.mugqic/CentOS6
+
+while getopts ":d:f:" opt; do
+  case $opt in
+    d)
+      export DISTRO=${OPTARG}
+      ;;
+    f)
+      export FROM_FILE=${OPTARG}
+      ;;
+   h)
+      usage
+      exit 0
+      ;;
+   \?)
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+if [[ ! -n ${FROM_FILE} ]] || [[ ! $# == 1 ]]  ; do
+   usage
+   exit 1
+fi
+TO_PATCH=${1}
+
+if [[ ${DISTRO} == [Uu]buntu ]] ; then
+  echo "Ubuntu"
+  export C3G_SYSTEM_LIBRARY=/cvmfs/soft.mugqic/apt/ubuntu1604/1.0
+  export LIB=lib
+  export INTERPRETER=$C3G_SYSTEM_LIBRARY/$LIB/x86_64-linux-gnu/ld-linux-x86-64.so.2
+  export LIBDIR=$C3G_SYSTEM_LIBRARY/$LIB/x86_64-linux-gnu:$C3G_SYSTEM_LIBRARY/usr/$LIB/x86_64-linux-gnu:$C3G_SYSTEM_LIBRARY/$LIB:$C3G_SYSTEM_LIBRARY/usr/$LIB
+elif [[ ${DISTRO} == [Cc]enos7 ]] || [[ ${DISTRO} == [Cc]7 ]] ; then
+
+   export LIBDIR=/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib64:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib64:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib
+
+   export INTERPRETER=/cvmfs/soft.mugqic/yum/centos7/1.0/lib64/ld-linux-x86-64.so.2
+fi
+
+
+
+do_patch(){
+  echo "*************************************************************************"
+  echo rpath
+  readelf -d $i
+  if $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --print-rpath $i; then
+    CURRENT_RPATH=$($MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --print-rpath $i):
+
+    for cp in ${CURRENT_RPATH//:/$'\n'}; do
+      if [[ $LIBDIR  =~ .*${cp}.*   ]]
+         continue
+      elif [[ $cp =~ .*soft.mugqic.*  ]]
+        echo $cp is in the rpath but not in LIBDIR
+        read
+      elif [[ ! $cp =~ .*ORIGIN.*  ]]
+        continue
+        echo ejecting $cp from rpath
+        read
+      fi
+      NEW_RPATH=$cp:$NEW_RPATH
+
+    done
+
+  else
+    NEW_RPATH=""
+  fi
+
+  RPATH=${NEW_RPATH#:}$LIBDIR
+
+if readelf -l $i | grep go.build > /dev/null; then
+    echo "NOOOOO" $i
+elif [ ${i##*.} == "so" ] || [[ ${i##*/} =~ "so"*(\.[0-9]+[a-z]*)*$ ]]; then
+    echo OUI $i
+    $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --force-rpath --set-rpath ${RPATH} $i
+else
+    echo DOUBLE OUI $i
+    $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --set-interpreter $INTERPRETER --force-rpath --set-rpath $RPATH $i
+fi
+ldd $i
+
+
+}
+
+
+patch_from_file() {
+
+while read file; do
+ do_patch
+done < $FROM_FILE
+
+}
+
+
+
+patch_dir () {
+  for i in `find ${TO_PATCH} -type f -executable -exec file {} \; | grep -v "statically linked" | grep ELF | cut -d":" -f1` ; do
+  do_patch
+  done
+}
+
+if [[ -n ${FROM_FILE} ]] ;then
+  patch_from_file
+else
+  patch_dir
+fi
