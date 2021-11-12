@@ -35,7 +35,7 @@ done
 
 shift $(($OPTIND - 1))
 
-if [[ ! -n ${FROM_FILE} ]] || [[ ! $# == 1 ]]  ; do
+if [[ ! -n ${FROM_FILE} ]] && [[ ! $# == 1 ]]; then
    usage
    exit 1
 fi
@@ -64,12 +64,12 @@ do_patch(){
     CURRENT_RPATH=$($MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --print-rpath $i):
 
     for cp in ${CURRENT_RPATH//:/$'\n'}; do
-      if [[ $LIBDIR  =~ .*${cp}.*   ]]
+      if [[ $LIBDIR  =~ .*${cp}.*   ]]; then
          continue
-      elif [[ $cp =~ .*soft.mugqic.*  ]]
+      elif [[ $cp =~ .*soft.mugqic.*  ]]; then
         echo $cp is in the rpath but not in LIBDIR
         read
-      elif [[ ! $cp =~ .*ORIGIN.*  ]]
+      elif [[ ! $cp =~ .*ORIGIN.*  ]]; then
         continue
         echo ejecting $cp from rpath
         read
