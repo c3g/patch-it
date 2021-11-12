@@ -51,8 +51,9 @@ if [[ ${DISTRO} == [Uu]buntu ]] ; then
   export LIB=lib
   export INTERPRETER=$C3G_SYSTEM_LIBRARY/$LIB/x86_64-linux-gnu/ld-linux-x86-64.so.2
   export LIBDIR=$C3G_SYSTEM_LIBRARY/$LIB/x86_64-linux-gnu:$C3G_SYSTEM_LIBRARY/usr/$LIB/x86_64-linux-gnu:$C3G_SYSTEM_LIBRARY/$LIB:$C3G_SYSTEM_LIBRARY/usr/$LIB
-elif [[ ${DISTRO} == [Cc]enos7 ]] || [[ ${DISTRO} == [Cc]7 ]] ; then
+elif [[ ${DISTRO} == [Cc]entos7 ]] || [[ ${DISTRO} == [Cc]7 ]] ; then
 
+   export EXCLUDE_PATH = "/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/c3g"
    export LIBDIR=/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib64:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib64:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib
 
    export INTERPRETER=/cvmfs/soft.mugqic/yum/centos7/1.0/lib64/ld-linux-x86-64.so.2
@@ -60,6 +61,7 @@ fi
 
 safe_mode (){
   if [[ -n ${SAFE_MODE} ]]; then
+    echo safe_mode
     echo $@
   else
     $@
@@ -71,20 +73,26 @@ do_patch(){
   file = ${1}
   echo "*************************************************************************"
   echo rpath
+  echo $PWD
   readelf -d ${file}
   if $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --print-rpath ${file}; then
     CURRENT_RPATH=$($MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --print-rpath ${file}):
 
     for cp in ${CURRENT_RPATH//:/$'\n'}; do
       if [[ $LIBDIR  =~ .*${cp}.*   ]]; then
-         continue
-      elif [[ $cp =~ .*soft.mugqic.*  ]]; then
-        echo $cp is in the rpath but not in LIBDIR
-        read
-      elif [[ ! $cp =~ .*ORIGIN.*  ]]; then
+        echo eject $cp already in LIBDIR
         continue
+      elif [[  ${EXCLUDE_PATH} =~ .*${cp}.* ]]; then
+        echo eject $cp, in EXCLUDE_PATH
+        continue
+      elif [[ $cp =~ .*soft.mugqic.*  ]]; then
+        echo eject $cp, is rpath but not in LIBDIR
+        read
+        continue
+      elif [[ ! $cp =~ .*ORIGIN.*  ]]; then
         echo ejecting $cp from rpath
         read
+        continue
       fi
       NEW_RPATH=$cp:$NEW_RPATH
 
@@ -95,10 +103,11 @@ do_patch(){
   fi
 
   RPATH=${NEW_RPATH#:}$LIBDIR
+  echo full rpath ${RPATH}
 
 if readelf -l ${file} | grep go.build > /dev/null; then
     echo "NOOOOO" ${file}
-elif [ ${i##*.} == "so" ] || [[ ${i##*/} =~ "so"*(\.[0-9]+[a-z]*)*$ ]]; then
+elif [[ ${i##*.} == "so" ]] || [[ ${i##*/} =~ "so"*(\.[0-9]+[a-z]*)*$ ]]; then
     echo OUI ${file}
 safe_mode $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --force-rpath --set-rpath ${RPATH} ${file}
 else
