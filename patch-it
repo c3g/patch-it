@@ -138,7 +138,9 @@ done < $FROM_FILE
 patch_dir () {
   TO_PATCH=$1
   echo $TO_PATCH
-  for i in `find ${TO_PATCH} -type f ! name "*.py[oc]" ! name "*.pl" -exec file {} \; | grep -v "statically linked\|relocatable," | grep ELF | cut -d":" -f1` ; do
+  for i in `find ${TO_PATCH} -type f ! -name "*.py" ! -name "*.py[oc]" ! \
+  -name "*.pl" -exec file {} \; | grep -v "statically linked\|relocatable," \
+   | grep ELF | cut -d":" -f1` ; do
     echo ${i} >> list_to_patch
     do_patch ${i}
   done
