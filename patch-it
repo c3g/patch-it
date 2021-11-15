@@ -112,7 +112,7 @@ do_patch(){
 
 if readelf -l ${file_path} | grep go.build > /dev/null; then
     echo "NOOOOO" ${file_path}
-elif [[ ${i##*.} == "so" ]] || [[ ${i##*/} =~ "so"*(\.[0-9]+[a-z]*)*$ ]]; then
+elif [[ ${file_path##*.} == "so" ]] || [[ ${file_path##*/} =~ "so"*(\.[0-9]+[a-z]*)*$ ]]; then
     echo OUI ${file_path}
 safe_mode $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --force-rpath --set-rpath ${RPATH} ${file_path}
 else
@@ -139,7 +139,7 @@ patch_dir () {
   TO_PATCH=$1
   echo $TO_PATCH
   for i in `find ${TO_PATCH} -type f -executable -exec file {} \; | grep -v "statically linked" | grep ELF | cut -d":" -f1` ; do
-    do_patch $i
+    do_patch ${i}
   done
 }
 
