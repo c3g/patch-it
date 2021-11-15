@@ -5,10 +5,10 @@ usage (){
 echo
 echo "usage: $0 -d <distro> [path]"
 echo "options"
-echo "  -s      safe mode, print but does not patch"
-echo "  -d      ubuntu[1604] or Centos7"
-echo "  -f      List of lib to patch if not given the list will be crated on"
-echo "            on the fly"
+echo "  -s              safe mode, print but does not patch"
+echo "  -d   <distro>   ubuntu[1604] or Centos7"
+echo "  -f              List of libs/files to patch if not given the list"
+echo "                    will be crated on on the fly from path"
 
 }
 
