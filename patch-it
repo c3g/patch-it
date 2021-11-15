@@ -65,14 +65,14 @@ fi
 
 
 safe_mode (){
-  echo $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --remove-rpath ${@: -1}
-  echo $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf $@
+  echo patchelf --remove-rpath ${@: -1}
+  echo patchelf $@
   if [[ -n ${SAFE_MODE} ]]; then
     echo safe_mode
   else
     echo applying
-    $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --remove-rpath ${@: -1}
-    $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf $@
+    patchelf --remove-rpath ${@: -1}
+    patchelf $@
   fi
 }
 
@@ -95,11 +95,9 @@ do_patch(){
         continue
       elif [[ $current =~ .*soft.mugqic.*  ]]; then
         echo ejecting $current, is cvmfs rpath but not explicitely in LIBDIR
-        read
         continue
       elif [[ ! $current =~ .*ORIGIN.*  ]]; then
         echo ejecting $current is neither cvmfs or ORIGIN
-        read
         continue
       fi
       NEW_RPATH=$current:$NEW_RPATH
@@ -137,13 +135,14 @@ done < $FROM_FILE
 }
 
 
-
 patch_dir () {
   TO_PATCH=$1
   echo $TO_PATCH
-  for i in `find ${TO_PATCH} -type f -executable -exec file {} \; | grep -v "statically linked" | grep ELF | cut -d":" -f1` ; do
+  for i in `find ${TO_PATCH} -type f ! name "*.py[oc]" ! name "*.pl" -exec file {} \; | grep -v "statically linked\|relocatable," | grep ELF | cut -d":" -f1` ; do
+    echo ${i} >> list_to_patch
     do_patch ${i}
   done
+
 }
 
 if [[ -n ${FROM_FILE} ]] ;then
