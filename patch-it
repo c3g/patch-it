@@ -69,6 +69,7 @@ safe_mode (){
     echo safe_mode
     echo $@
   else
+    echo applying $@
     $@
   fi
 }
