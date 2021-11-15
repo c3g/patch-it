@@ -57,7 +57,12 @@ elif [[ ${DISTRO} == [Cc]entos7 ]] || [[ ${DISTRO} == [Cc]7 ]] ; then
    export LIBDIR=/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib64:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib64:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib
 
    export INTERPRETER=/cvmfs/soft.mugqic/yum/centos7/1.0/lib64/ld-linux-x86-64.so.2
+else
+  echo please pick a disto for the patch
+  usage
+  exit 1
 fi
+
 
 safe_mode (){
   if [[ -n ${SAFE_MODE} ]]; then
@@ -79,18 +84,18 @@ do_patch(){
     CURRENT_RPATH=$($MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --print-rpath ${file_path}):
     echo Old rpath $CURRENT_RPATH
     for current in ${CURRENT_RPATH//:/$'\n'}; do
-      if [[ $LIBDIR  =~ .*${current}.*   ]]; then
+      if [[ ${LIBDIR}  =~ .*${current}.*   ]]; then
         echo ejecting $current already in LIBDIR
         continue
       elif [[  ${EXCLUDE_PATH} =~ .*${current}.* ]]; then
-        echo ejecting $current, in EXCLUDE_PATH
+        echo ejecting $current, is in EXCLUDE_PATH
         continue
       elif [[ $current =~ .*soft.mugqic.*  ]]; then
-        echo ejecting $current, is rpath but not in LIBDIR
+        echo ejecting $current, is cvmfs rpath but not explicitely in LIBDIR
         read
         continue
       elif [[ ! $current =~ .*ORIGIN.*  ]]; then
-        echo ejecting $current from rpath
+        echo ejecting $current is neither cvmfs or ORIGIN
         read
         continue
       fi
@@ -102,7 +107,7 @@ do_patch(){
     NEW_RPATH=""
   fi
 
-  RPATH=${NEW_RPATH#:}$LIBDIR
+  RPATH=${NEW_RPATH#:}${LIBDIR}
   echo New rpath ${RPATH}
 
 if readelf -l ${file_path} | grep go.build > /dev/null; then
