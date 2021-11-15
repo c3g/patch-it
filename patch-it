@@ -65,8 +65,8 @@ fi
 
 
 safe_mode (){
-  echo MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --remove-rpath ${@: -1}
-  echo MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf $@
+  echo $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --remove-rpath ${@: -1}
+  echo $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf $@
   if [[ -n ${SAFE_MODE} ]]; then
     echo safe_mode
   else
