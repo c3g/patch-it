@@ -54,7 +54,7 @@ if [[ ${DISTRO} == [Uu]buntu ]] ; then
 elif [[ ${DISTRO} == [Cc]entos7 ]] || [[ ${DISTRO} == [Cc]7 ]] ; then
 
    export EXCLUDE_PATH="/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/c3g"
-   export LIBDIR=/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib64:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib64:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib
+   export LIBDIR=/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib64:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib64:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib:/
 
    export INTERPRETER=/cvmfs/soft.mugqic/yum/centos7/1.0/lib64/ld-linux-x86-64.so.2
 else
@@ -65,12 +65,14 @@ fi
 
 
 safe_mode (){
+  echo MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --remove-rpath ${@: -1}
+  echo MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf $@
   if [[ -n ${SAFE_MODE} ]]; then
     echo safe_mode
-    echo $@
   else
-    echo applying $@
-    $@
+    echo applying
+    MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --remove-rpath ${@: -1}
+    MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf $@
   fi
 }
 
@@ -115,10 +117,10 @@ if readelf -l ${file_path} | grep go.build > /dev/null; then
     echo "NOOOOO" ${file_path}
 elif [[ ${file_path##*.} == "so" ]] || [[ ${file_path##*/} =~ "so"*(\.[0-9]+[a-z]*)*$ ]]; then
     echo OUI ${file_path}
-safe_mode $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --force-rpath --set-rpath ${RPATH} ${file_path}
+safe_mode  --force-rpath --set-rpath ${RPATH} ${file_path}
 else
     echo DOUBLE OUI ${file_path}
-safe_mode  $MUGQIC_INSTALL_HOME/software/patchelf/patchelf-0.9/bin/patchelf --set-interpreter $INTERPRETER --force-rpath --set-rpath $RPATH ${file_path}
+safe_mode  --set-interpreter $INTERPRETER --force-rpath --set-rpath $RPATH ${file_path}
 fi
 ldd ${file_path}
 
