@@ -134,7 +134,7 @@ export -f do_patch
 patch_from_file() {
 
 while read file_path; do
- do_patch ${file_path}4
+ do_patch ${file_path}
 done < $FROM_FILE
 
 }
