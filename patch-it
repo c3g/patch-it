@@ -116,20 +116,20 @@ do_patch(){
   RPATH=${NEW_RPATH#:}${LIBDIR}
   echo New rpath ${RPATH}
 
-if readelf -l ${file_path} | grep go.build > /dev/null; then
-    echo "NOOOOO" ${file_path}
-elif [[ ${file_path##*.} == "so" ]] || [[ ${file_path##*/} =~ "so"*(\.[0-9]+[a-z]*)*$ ]]; then
-    echo OUI ${file_path}
-safe_mode  --force-rpath --set-rpath ${RPATH} ${file_path}
-else
+  if readelf -l ${file_path} | grep go.build > /dev/null; then
+      echo "NOOOOO" ${file_path}
+  elif [[ ${file_path##*.} == "so" ]] || [[ ${file_path##*/} =~ "so"*(\.[0-9]+[a-z]*)*$ ]]; then
+      echo OUI ${file_path}
+      safe_mode  --force-rpath --set-rpath ${RPATH} ${file_path}
+  else
     echo DOUBLE OUI ${file_path}
-safe_mode  --set-interpreter $INTERPRETER --force-rpath --set-rpath $RPATH ${file_path}
-fi
-ldd ${file_path}
-
+    safe_mode  --set-interpreter $INTERPRETER --force-rpath --set-rpath $RPATH ${file_path}
+  fi
+  ldd ${file_path}
 
 }
 
+export -f do_patch
 
 patch_from_file() {
 
