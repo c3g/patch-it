@@ -73,7 +73,7 @@ else
 fi
 
 
-safe_mode (){
+export -f safe_mode (){
   echo patchelf --remove-rpath ${@: -1}
   echo patchelf $@
   if [[ -n ${SAFE_MODE} ]]; then
@@ -86,7 +86,7 @@ safe_mode (){
 }
 
 
-do_patch(){
+export -f do_patch(){
   NEW_RPATH=
   file_path=${1}
   echo "*************************************************************************"
@@ -133,7 +133,6 @@ do_patch(){
 
 }
 
-export -f do_patch
 
 patch_from_file() {
 
