@@ -5,20 +5,24 @@ usage (){
 echo
 echo "usage: $0 -d <distro> [path]"
 echo "options"
-echo "  -s                 safe mode, print but does not patch"
-echo "  -d   <distro>      ubuntu[1604] or Centos7"
-echo "  -l   <file_path>   Were to put the list of file to patch"
-echo "                       [Defautl: /tmp/list_to_patch]"
-echo "  -f   <file_path>   List of libs/files to patch if not given the list"
-echo "                       will be crated on on the fly from path"
+echo "  -s                  safe mode, print but does not patch"
+echo "  -x   <extra rpath>  extra rpath to add to all file"
+echo "  -d   <distro>       ubuntu[1604] or Centos7"
+echo "  -l   <file_path>    Were to put the list of file to patch"
+echo "                        [Defautl: /tmp/list_to_patch]"
+echo "  -f   <file_path>    List of libs/files to patch if not given the list"
+echo "                        will be crated on on the fly from path"
 
 }
 
-
+export EXTRA_RPATH=
 export MUGQIC_INSTALL_HOME=/cvmfs/soft.mugqic/CentOS6
 export list_to_patch=/tmp/list_to_patch
-while getopts ":l:d:f:s" opt; do
+while getopts ":x:l:d:f:s" opt; do
   case $opt in
+    x)
+      export EXTRA_RPATH=:${OPTARG}
+      ;;
     s)
       export SAFE_MODE=true
       ;;
@@ -113,7 +117,7 @@ do_patch(){
     NEW_RPATH=""
   fi
 
-  RPATH=${NEW_RPATH#:}${LIBDIR}
+  RPATH=${NEW_RPATH#:}${LIBDIR}${EXTRA_RPATH}
   echo New rpath ${RPATH}
 
   if readelf -l ${file_path} | grep go.build > /dev/null; then
@@ -147,7 +151,7 @@ patch_dir () {
   find ${TO_PATCH} -type f ! -name "*.[ch]" ! -name "*.[hc]pp" ! -name "*.rd[sbaxc]" \
   ! -name "*.md" ! -name "*.html" ! -name "*.py" ! -name "*.gz" ! -name "*.tar" \
   ! -name "*.py[oc]" ! -name "*.py" ! -name "*.css" \
-  ! -name "*.pl" | parallel -j 55 file   |  grep ELF \
+  ! -name "*.pl" | parallel -j 55 file   |  grep " ELF " \
   | grep -v "statically linked\|relocatable" | awk -F ":" '{print $1}' \
   | xargs -i bash -c "echo {} >> $list_to_patch ; do_patch {}"
 }
