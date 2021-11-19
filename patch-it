@@ -129,22 +129,22 @@ ldd ${file_path}
 patch_from_file() {
 
 while read file_path; do
- do_patch ${file_path}
+ do_patch ${file_path}4
 done < $FROM_FILE
 
-}
+} 
 
 
 patch_dir () {
+  rm /tmp/list_to_patch 2>/dev/null
   TO_PATCH=$1
   echo $TO_PATCH
-  for i in `find ${TO_PATCH} -type f ! -name "*.py" ! -name "*.py[oc]" ! \
-  -name "*.pl" -exec file {} \; | grep -v "statically linked\|relocatable," \
-   | grep ELF | cut -d":" -f1` ; do
-    echo ${i} >> list_to_patch
-    do_patch ${i}
-  done
-
+  find ${TO_PATCH} -type f ! -name "*.[ch]" ! -name "*.[hc]pp" ! -name "*.rd[sbaxc]" \
+  ! -name "*.md" ! -name "*.html" ! -name "*.py" ! -name "*.gz" ! -name "*.tar" \
+  ! -name "*.py[oc]" ! -name "*.py" ! -name "*.css" \
+  ! -name "*.pl" | parallel -j 55 file   |  grep ELF \
+  | grep -v "statically linked\|relocatable" | awk -F ":" '{print $1}' \
+  | xargs -i bash -c "echo {} >> /tmp/list_to_patch ; do_patch {}"
 }
 
 if [[ -n ${FROM_FILE} ]] ;then
