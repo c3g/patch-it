@@ -59,11 +59,11 @@ if [[ ${DISTRO} == [Uu]buntu ]] ; then
   export C3G_SYSTEM_LIBRARY=/cvmfs/soft.mugqic/apt/ubuntu1604/1.0
   export LIB=lib
   export INTERPRETER=$C3G_SYSTEM_LIBRARY/$LIB/x86_64-linux-gnu/ld-linux-x86-64.so.2
-  export LIBDIR=$C3G_SYSTEM_LIBRARY/$LIB/x86_64-linux-gnu:$C3G_SYSTEM_LIBRARY/usr/$LIB/x86_64-linux-gnu:$C3G_SYSTEM_LIBRARY/$LIB:$C3G_SYSTEM_LIBRARY/usr/$LIB
+  export LIBDIR=$C3G_SYSTEM_LIBRARY/$LIB/x86_64-linux-gnu/:${C3G_SYSTEM_LIBRARY}/usr/$LIB/x86_64-linux-gnu/:${C3G_SYSTEM_LIBRARY}/${LIB}/:${C3G_SYSTEM_LIBRARY}/usr/${LIB}/
 elif [[ ${DISTRO} == [Cc]entos7 ]] || [[ ${DISTRO} == [Cc]7 ]] ; then
 
    export EXCLUDE_PATH="/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/c3g"
-   export LIBDIR=/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib64:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib64:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib:/
+   export LIBDIR=/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib64/:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib64/:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/local/lib/:/cvmfs/soft.mugqic/yum/centos7/1.0/usr/lib/
 
    export INTERPRETER=/cvmfs/soft.mugqic/yum/centos7/1.0/lib64/ld-linux-x86-64.so.2
 else
@@ -73,7 +73,7 @@ else
 fi
 
 
-export -f safe_mode (){
+safe_mode (){
   echo patchelf --remove-rpath ${@: -1}
   echo patchelf $@
   if [[ -n ${SAFE_MODE} ]]; then
@@ -84,9 +84,9 @@ export -f safe_mode (){
     patchelf $@
   fi
 }
+export -f safe_mode
 
-
-export -f do_patch(){
+do_patch(){
   NEW_RPATH=
   file_path=${1}
   echo "*************************************************************************"
@@ -103,7 +103,7 @@ export -f do_patch(){
         echo ejecting $current, is in EXCLUDE_PATH
         continue
       elif [[ $current =~ .*soft.mugqic.*  ]]; then
-        echo ejecting $current, is cvmfs rpath but not explicitely in LIBDIR
+        echo ejecting $current is cvmfs rpath but not explicitely in LIBDIR
         continue
       elif [[ ! $current =~ .*ORIGIN.*  ]]; then
         echo ejecting $current is neither cvmfs or ORIGIN
@@ -132,6 +132,7 @@ export -f do_patch(){
   ldd ${file_path}
 
 }
+export -f do_patch
 
 
 patch_from_file() {
