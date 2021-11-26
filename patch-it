@@ -6,7 +6,7 @@ echo
 echo "usage: $0 -d <distro> [path]"
 echo "options"
 echo "  -s                  safe mode, print but does not patch"
-echo "  -x   <extra rpath>  extra rpath to add to all file"
+echo "  -x   <extra rpath>  extra rpath to add to a directory"
 echo "  -d   <distro>       ubuntu[1604] or Centos7"
 echo "  -l   <file_path>    Were to put the list of file to patch"
 echo "                        [Defautl: /tmp/list_to_patch]"
