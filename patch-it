@@ -7,9 +7,9 @@ echo "usage: $0 -d <distro> [path]"
 echo "options"
 echo "  -s                  safe mode, print but does not patch"
 echo "  -x   <extra rpath>  extra rpath to add to a directory"
-echo "  -d   <distro>       Ubuntu1604, Ubuntu1804, CentOS7 or CentoOS8"
+echo "  -d   <distro>       Ubuntu1604, Ubuntu1804, Ubuntu2004, Ububutu2110, CentOS7 or CentoOS8"
 echo "  -l   <file_path>    Were to put the list of file to patch"
-echo "                        [Defautl: /tmp/list_to_patch]"
+echo "                        [Default: /tmp/list_to_patch]"
 echo "  -f   <file_path>    List of libs/files to patch if not given the list"
 echo "                        will be crated on on the fly from path"
 
@@ -65,6 +65,14 @@ if [[ ${DISTRO} == [Uu]buntu1604 ]] || [[ ${DISTRO} == [Uu]1604 ]] || [[ ${DISTR
 elif [[ ${DISTRO} == [Uu]buntu1804 ]] || [[ ${DISTRO} == [Uu]1804 ]] || [[ ${DISTRO} == [Uu]18 ]] ; then
   echo "Ubuntu1804"
   export C3G_SYSTEM_LIBRARY=/cvmfs/soft.mugqic/apt/ubuntu1804/1.0
+  export LIB=lib
+  export LIBDIR=$C3G_SYSTEM_LIBRARY/$LIB/x86_64-linux-gnu:${C3G_SYSTEM_LIBRARY}/usr/$LIB/x86_64-linux-gnu:${C3G_SYSTEM_LIBRARY}/${LIB}:${C3G_SYSTEM_LIBRARY}/usr/${LIB}
+
+  export INTERPRETER=$C3G_SYSTEM_LIBRARY/$LIB/x86_64-linux-gnu/ld-linux-x86-64.so.2
+
+elif [[ ${DISTRO} == [Uu]buntu2004 ]] || [[ ${DISTRO} == [Uu]2004 ]] || [[ ${DISTRO} == [Uu]20 ]] ; then
+  echo "Ubuntu2004"
+  export C3G_SYSTEM_LIBRARY=/cvmfs/soft.mugqic/apt/ubuntu2004/1.0
   export LIB=lib
   export LIBDIR=$C3G_SYSTEM_LIBRARY/$LIB/x86_64-linux-gnu:${C3G_SYSTEM_LIBRARY}/usr/$LIB/x86_64-linux-gnu:${C3G_SYSTEM_LIBRARY}/${LIB}:${C3G_SYSTEM_LIBRARY}/usr/${LIB}
 
