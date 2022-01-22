@@ -159,7 +159,7 @@ do_patch(){
 
   if readelf -l ${file_path} | grep go.build > /dev/null; then
       echo "NOOOOO" ${file_path}
-  elif [[ ${file_path##*.} == "so" ]] || [[ ${file_path##*/} =~ "so"*(\.[0-9]+[a-z]*)*$ ]]; then
+  elif [[ ${file_path##*.} == "so" ]] || [[ ${file_path##*/} =~ ".so." ]]; then
       echo OUI ${file_path}
       safe_mode  --force-rpath --set-rpath ${RPATH} ${file_path}
   else
