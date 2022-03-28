@@ -166,7 +166,7 @@ do_patch(){
     echo DOUBLE OUI ${file_path}
     safe_mode  --set-interpreter $INTERPRETER --force-rpath --set-rpath $RPATH ${file_path}
   fi
-  ls $(dirname "${file_path}")
+  echo $(dirname "${file_path}")
   ldd ${file_path}
 
 }
