@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 
 usage (){
-
-echo
-echo "usage: $0 -d <distro> [path]"
-echo "options"
-echo "  -s                  safe mode, print but does not patch"
-echo "  -x   <extra rpath>  extra rpath to add to a directory"
-echo "  -d   <distro>       Ubuntu1604, Ubuntu1804, Ubuntu2004, Ububutu2110, CentOS7 or CentoOS8"
-echo "  -l   <file_path>    Were to put the list of file to patch"
-echo "                        [Default: /tmp/list_to_patch]"
-echo "  -f   <file_path>    List of libs/files to patch if not given the list"
-echo "                        will be crated on on the fly from path"
-
+  echo
+  echo "usage: $0 -d <distro> [path]"
+  echo "options"
+  echo "  -s                  safe mode, print but does not patch"
+  echo "  -x   <extra rpath>  extra rpath to add to a directory"
+  echo "  -d   <distro>       Ubuntu1604, Ubuntu1804, Ubuntu2004, Ububutu2110, Ububutu2404, CentOS7 or CentoOS8"
+  echo "  -l   <file_path>    Were to put the list of file to patch"
+  echo "                        [Default: /tmp/list_to_patch]"
+  echo "  -f   <file_path>    List of libs/files to patch if not given the list"
+  echo "                        will be crated on on the fly from path"
 }
 
 export EXTRA_RPATH=
@@ -81,6 +79,14 @@ elif [[ ${DISTRO} == [Uu]buntu2004 ]] || [[ ${DISTRO} == [Uu]2004 ]] || [[ ${DIS
 elif [[ ${DISTRO} == [Uu]buntu2110 ]] || [[ ${DISTRO} == [Uu]2110 ]] || [[ ${DISTRO} == [Uu]21 ]] ; then
   echo "Ubuntu2110"
   export C3G_SYSTEM_LIBRARY=/cvmfs/soft.mugqic/apt/ubuntu2110/1.0
+  export LIB=lib
+  export LIBDIR=$C3G_SYSTEM_LIBRARY/$LIB/x86_64-linux-gnu:${C3G_SYSTEM_LIBRARY}/usr/$LIB/x86_64-linux-gnu:${C3G_SYSTEM_LIBRARY}/${LIB}:${C3G_SYSTEM_LIBRARY}/usr/${LIB}
+
+  export INTERPRETER=$C3G_SYSTEM_LIBRARY/$LIB/x86_64-linux-gnu/ld-linux-x86-64.so.2
+
+elif [[ ${DISTRO} == [Uu]buntu2404 ]] || [[ ${DISTRO} == [Uu]2404 ]] || [[ ${DISTRO} == [Uu]24 ]] ; then
+  echo "Ubuntu2404"
+  export C3G_SYSTEM_LIBRARY=/cvmfs/soft.mugqic/apt/ubuntu2404/1.0
   export LIB=lib
   export LIBDIR=$C3G_SYSTEM_LIBRARY/$LIB/x86_64-linux-gnu:${C3G_SYSTEM_LIBRARY}/usr/$LIB/x86_64-linux-gnu:${C3G_SYSTEM_LIBRARY}/${LIB}:${C3G_SYSTEM_LIBRARY}/usr/${LIB}
 

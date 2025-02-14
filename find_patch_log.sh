@@ -1,8 +1,8 @@
+#!/usr/bin/env bash
 
 usage() {
-echo "$0 <patern> <path>"
-echo " find in the patch-it logs where gentoo is still used"
-
+    echo "$0 <patern> <path>"
+    echo " find in the patch-it logs where gentoo is still used"
 }
 
 if [[ $# != 2  ]]; then
