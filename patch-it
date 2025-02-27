@@ -164,7 +164,7 @@ do_patch(){
   echo New rpath ${RPATH}
 
   # If NEEDED section not found, but go.build section found don't patch and print error
-  if ! readelf -d ${file_path} | grep NEEDED > /dev/null && readelf -l ${file_path} | grep go.build > /dev/null; then
+  if readelf -l ${file_path} | grep go.build > /dev/null && ! readelf -d ${file_path} | grep NEEDED > /dev/null; then
       echo "NOOOOO" ${file_path}
   elif [[ ${file_path##*.} == "so" ]] || [[ ${file_path##*/} =~ ".so." ]]; then
       echo OUI ${file_path}
